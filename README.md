@@ -2,7 +2,7 @@
 
 A brutal browser-based reflex game. Click when it goes green. Fake-outs will destroy you. Climb the leaderboard.
 
-**[Play it live →]([https://reflex-arena.vercel.app](https://reflexarena-io.vercel.app/))**
+**[Play it live →](https://reflexarena-io.vercel.app/)**
 
 ---
 
