@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reflex Arena — Test Your Neurons</title>
+<meta name="description" content="A brutal reflex game. Click when it goes green. Fake-outs will destroy you. Climb the leaderboard.">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7010407733469942" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ng:#00ff88;--np:#ff2d78;--nb:#00cfff;--ny:#ffe600;
+  --bg:#07070f;--bg2:#0d0d1a;--bg3:#12121f;--panel:#0f0f1c;
+  --border:#1e1e3a;--text:#ddddf5;--muted:#8888bb;
+  --mono:'Share Tech Mono',monospace;--display:'Orbitron',sans-serif;
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);pointer-events:none;z-index:9999;}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,136,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+#logo{text-align:center;margin-bottom:2rem;padding-top:1rem;}
+#logo-title{font-family:var(--display);font-size:clamp(28px,8vw,48px);font-weight:900;letter-spacing:4px;color:var(--ng);animation:pulse-glow 3s ease-in-out infinite;}
+@keyframes pulse-glow{0%,100%{text-shadow:0 0 20px rgba(0,255,136,0.4),0 0 60px rgba(0,255,136,0.15);}50%{text-shadow:0 0 30px rgba(0,255,136,0.7),0 0 80px rgba(0,255,136,0.25);}}
+#logo-sub{font-size:11px;letter-spacing:5px;color:var(--muted);margin-top:6px;text-transform:uppercase;}
+.screen{display:none;}
+.screen.active{display:block;}
+/* username */
+#username-screen{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:2rem;text-align:center;margin-bottom:1.5rem;}
+#username-title{font-family:var(--display);font-size:13px;letter-spacing:3px;color:var(--nb);margin-bottom:6px;text-transform:uppercase;}
+#username-sub{font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:1.25rem;}
+#username-input{width:100%;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--ng);font-family:var(--mono);font-size:15px;letter-spacing:3px;text-align:center;outline:none;text-transform:uppercase;}
+#username-input:focus{border-color:var(--ng);}
+#username-input::placeholder{color:var(--muted);}
+#username-btn{margin-top:12px;width:100%;padding:13px;font-size:11px;letter-spacing:3px;cursor:pointer;border-radius:6px;border:1px solid var(--ng);background:transparent;color:var(--ng);font-family:var(--mono);text-transform:uppercase;transition:all 0.15s;}
+#username-btn:hover{background:#001a0d;}
+#username-error{font-size:10px;color:var(--np);letter-spacing:2px;margin-top:8px;min-height:16px;}
+/* main menu */
+#menu-screen .menu-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
+.mode-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1.25rem;cursor:pointer;transition:all 0.15s;text-align:center;}
+.mode-card:hover{border-color:var(--ng);background:#001a0d;}
+.mode-card.full{grid-column:1/-1;}
+.mode-card.duel{border-color:var(--np);}
+.mode-card.duel:hover{background:#160008;}
+.mode-icon{font-size:24px;margin-bottom:8px;}
+.mode-name{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:2px;color:var(--ng);margin-bottom:4px;}
+.mode-card.duel .mode-name{color:var(--np);}
+.mode-card.offline .mode-name{color:var(--nb);}
+.mode-desc{font-size:10px;color:var(--muted);letter-spacing:1px;line-height:1.5;}
+#player-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding:8px 14px;background:var(--panel);border:1px solid var(--border);border-radius:6px;}
+#player-name-display{font-size:12px;letter-spacing:2px;color:var(--ng);}
+#change-name-btn{font-size:10px;color:var(--muted);letter-spacing:1px;cursor:pointer;background:none;border:none;font-family:var(--mono);text-transform:uppercase;}
+#change-name-btn:hover{color:var(--text);}
+/* solo game */
+#solo-screen .mode-tabs{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:1.5rem;}
+.tab{padding:11px 8px;text-align:center;font-size:11px;letter-spacing:2px;cursor:pointer;background:var(--panel);color:var(--muted);border:none;font-family:var(--mono);text-transform:uppercase;transition:all 0.15s;border-right:1px solid var(--border);}
+.tab:last-child{border-right:none;}
+.tab.active{background:var(--bg3);color:var(--ng);}
+.tab:hover:not(.active){color:var(--text);background:var(--bg3);}
+#stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem;}
+.scard{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 6px;text-align:center;}
+.scard-label{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+.scard-val{font-size:17px;font-family:var(--display);font-weight:700;color:var(--ng);}
+.scard-val.pink{color:var(--np);}
+.scard-val.blue{color:var(--nb);}
+.scard-val.yellow{color:var(--ny);}
+#round-pips{display:flex;gap:5px;margin-bottom:1rem;}
+.pip{flex:1;height:3px;background:var(--border);border-radius:2px;transition:background 0.2s;}
+.pip.done{background:var(--ng);}
+.pip.fail{background:var(--np);}
+.pip.current{background:var(--ny);animation:blink 0.7s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.arena{width:100%;height:210px;background:var(--panel);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;margin-bottom:1.25rem;transition:background 0.08s,border-color 0.1s;position:relative;overflow:hidden;}
+.arena.go{background:#00160d;border-color:var(--ng);}
+.arena.bad{background:#160008;border-color:var(--np);}
+.arena.warn{background:#151000;border-color:var(--ny);}
+.arena-main{font-family:var(--display);font-size:clamp(22px,6vw,32px);font-weight:700;letter-spacing:3px;color:var(--muted);transition:color 0.08s;}
+.arena.go .arena-main{color:var(--ng);text-shadow:0 0 20px rgba(0,255,136,0.5);}
+.arena.bad .arena-main{color:var(--np);text-shadow:0 0 20px rgba(255,45,120,0.5);}
+.arena.warn .arena-main{color:var(--ny);text-shadow:0 0 20px rgba(255,230,0,0.5);}
+.arena-sub{font-size:11px;letter-spacing:3px;color:var(--muted);margin-top:10px;text-transform:uppercase;}
+.arena.go .arena-sub{color:rgba(0,255,136,0.6);}
+.arena.bad .arena-sub{color:rgba(255,45,120,0.6);}
+.arena.warn .arena-sub{color:rgba(255,230,0,0.6);}
+#combo-wrap{margin-bottom:1rem;}
+#combo-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+#combo-fill{height:3px;width:0%;background:var(--ng);border-radius:2px;transition:width 0.04s linear;}
+#combo-meta{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:5px;letter-spacing:2px;text-transform:uppercase;}
+#result-flash{text-align:center;font-size:12px;letter-spacing:3px;min-height:18px;margin-bottom:1rem;color:var(--muted);text-transform:uppercase;}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem;}
+.gbtn{padding:13px;font-size:11px;letter-spacing:3px;cursor:pointer;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--muted);font-family:var(--mono);text-transform:uppercase;transition:all 0.15s;}
+.gbtn:hover:not(:disabled){background:var(--bg3);color:var(--text);}
+.gbtn:active:not(:disabled){transform:scale(0.98);}
+.gbtn.primary{border-color:var(--ng);color:var(--ng);}
+.gbtn.primary:hover:not(:disabled){background:#001a0d;}
+.gbtn.danger{border-color:var(--np);color:var(--np);}
+.gbtn.danger:hover:not(:disabled){background:#160008;}
+.gbtn:disabled{opacity:0.25;cursor:default;}
+.gbtn.full{grid-column:1/-1;}
+#lb-panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1.5rem;}
+#lb-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+#lb-title-txt{font-family:var(--display);font-size:11px;letter-spacing:4px;color:var(--nb);text-transform:uppercase;}
+#lb-right{display:flex;align-items:center;gap:8px;}
+#lb-mode-badge{font-size:9px;letter-spacing:2px;padding:3px 8px;border:1px solid var(--nb);border-radius:4px;color:var(--nb);text-transform:uppercase;}
+#lb-refresh{font-size:10px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;}
+#lb-refresh:hover{color:var(--ng);}
+#lb-status{font-size:10px;color:var(--muted);letter-spacing:2px;text-align:center;padding:16px 0;}
+.lb-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(30,30,58,0.8);font-size:12px;}
+.lb-row:last-child{border-bottom:none;}
+.lb-rank{width:20px;color:var(--muted);}
+.lb-rank.g{color:var(--ny);}
+.lb-rank.s{color:#9999cc;}
+.lb-rank.b{color:#cc7744;}
+.lb-name{flex:1;color:var(--text);letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lb-name.you-entry{color:var(--ng);}
+.you-tag{font-size:8px;padding:1px 5px;border:1px solid var(--ng);border-radius:3px;color:var(--ng);margin-left:5px;letter-spacing:1px;vertical-align:middle;}
+.lb-ms{color:var(--muted);min-width:52px;text-align:right;font-size:11px;}
+.lb-pts{color:var(--ng);min-width:60px;text-align:right;}
+#share-card{display:none;background:var(--bg2);border:1px solid var(--ng);border-radius:10px;padding:1.5rem;text-align:center;margin-bottom:1.5rem;}
+#share-card.show{display:block;animation:fadein 0.3s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#share-game-name{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:4px;color:var(--ng);margin-bottom:6px;}
+#share-pts{font-family:var(--display);font-size:36px;font-weight:900;color:var(--ny);margin:8px 0;}
+#share-detail{font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:14px;text-transform:uppercase;}
+#share-pips{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+.spip{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.spip.g{background:#001a0d;color:var(--ng);border:1px solid var(--ng);}
+.spip.b{background:#160008;color:var(--np);border:1px solid var(--np);}
+#copy-btn{padding:11px 28px;font-size:11px;letter-spacing:3px;cursor:pointer;border-radius:6px;border:1px solid var(--ng);background:transparent;color:var(--ng);font-family:var(--mono);text-transform:uppercase;transition:all 0.15s;}
+#copy-btn:hover{background:#001a0d;}
+/* 1v1 screen */
+#duel-screen .duel-info{background:var(--panel);border:1px solid var(--np);border-radius:10px;padding:1.5rem;text-align:center;margin-bottom:1rem;}
+.duel-title{font-family:var(--display);font-size:14px;letter-spacing:3px;color:var(--np);margin-bottom:8px;text-transform:uppercase;}
+.duel-sub{font-size:11px;color:var(--muted);letter-spacing:2px;line-height:1.6;}
+#room-input{width:100%;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--np);font-family:var(--mono);font-size:15px;letter-spacing:3px;text-align:center;outline:none;text-transform:uppercase;margin-top:12px;}
+#room-input:focus{border-color:var(--np);}
+#room-input::placeholder{color:var(--muted);}
+#duel-status{text-align:center;font-size:12px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;min-height:18px;margin:10px 0;}
+.duel-arenas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
+.duel-player{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.duel-player-name{font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
+.duel-player-name.you{color:var(--ng);}
+.duel-player-name.opp{color:var(--np);}
+.duel-score{font-family:var(--display);font-size:20px;font-weight:700;color:var(--text);}
+.duel-ms{font-size:10px;color:var(--muted);margin-top:3px;}
+#duel-result{background:var(--bg2);border:1px solid var(--ny);border-radius:10px;padding:1.5rem;text-align:center;margin-bottom:1rem;display:none;}
+#duel-result.show{display:block;animation:fadein 0.3s ease;}
+#duel-result-title{font-family:var(--display);font-size:22px;font-weight:900;letter-spacing:3px;margin-bottom:8px;}
+#duel-result-detail{font-size:11px;color:var(--muted);letter-spacing:2px;}
+/* offline */
+#offline-screen .offline-info{background:var(--panel);border:1px solid var(--nb);border-radius:10px;padding:1rem 1.25rem;text-align:center;margin-bottom:1rem;}
+.offline-title{font-family:var(--display);font-size:12px;letter-spacing:3px;color:var(--nb);text-transform:uppercase;}
+.offline-best{font-family:var(--display);font-size:28px;font-weight:700;color:var(--ny);margin:6px 0 2px;}
+.offline-best-label{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+#how{border:1px solid var(--border);border-radius:10px;padding:1.25rem;background:var(--panel);margin-top:1rem;}
+#how-title{font-size:10px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;}
+.how-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;font-size:12px;color:var(--muted);letter-spacing:1px;line-height:1.5;}
+.how-row:last-child{margin-bottom:0;}
+.how-num{color:var(--ng);font-size:11px;min-width:18px;margin-top:1px;}
+#footer{text-align:center;font-size:9px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:2rem;padding-bottom:1rem;opacity:0.5;}
+@media(max-width:400px){#stats-row{grid-template-columns:repeat(2,1fr);}.scard-val{font-size:15px;}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="logo">
+    <div id="logo-title">Reflex Arena</div>
+    <div id="logo-sub">test your neurons</div>
+  </div>
+
+  <!-- USERNAME -->
+  <div id="username-screen" class="screen active">
+    <div id="username-title">Enter your tag</div>
+    <div id="username-sub">your name on the global leaderboard</div>
+    <input id="username-input" type="text" maxlength="16" placeholder="YOUR TAG" autocomplete="off" spellcheck="false">
+    <button id="username-btn" onclick="confirmUsername()">Enter the arena</button>
+    <div id="username-error"></div>
+  </div>
+
+  <!-- MAIN MENU -->
+  <div id="menu-screen" class="screen">
+    <div id="player-bar">
+      <div id="player-name-display">—</div>
+      <button id="change-name-btn" onclick="goTo('username-screen')">Change tag</button>
+    </div>
+    <div class="menu-modes">
+      <div class="mode-card" onclick="startSolo('classic')">
+        <div class="mode-icon">⚡</div>
+        <div class="mode-name">Classic</div>
+        <div class="mode-desc">8 rounds · 25% fakes · Normal</div>
+      </div>
+      <div class="mode-card" onclick="startSolo('daily')">
+        <div class="mode-icon">📅</div>
+        <div class="mode-name">Daily</div>
+        <div class="mode-desc">6 rounds · 35% fakes · Hard</div>
+      </div>
+      <div class="mode-card" onclick="startSolo('survival')">
+        <div class="mode-icon">💀</div>
+        <div class="mode-name">Survival</div>
+        <div class="mode-desc">12 rounds · 40% fakes · Brutal</div>
+      </div>
+      <div class="mode-card offline" onclick="goTo('offline-screen'); initOffline()">
+        <div class="mode-icon">📴</div>
+        <div class="mode-name">Offline</div>
+        <div class="mode-desc">No internet needed · Local best</div>
+      </div>
+      <div class="mode-card duel full" onclick="goTo('duel-screen'); initDuel()">
+        <div class="mode-icon">⚔️</div>
+        <div class="mode-name">1v1 Duel</div>
+        <div class="mode-desc">Challenge a friend in real time · Same rounds, best score wins</div>
+      </div>
+    </div>
+    <div id="lb-panel">
+      <div id="lb-head">
+        <div id="lb-title-txt">Global Leaderboard</div>
+        <div id="lb-right">
+          <div id="lb-mode-badge">Classic</div>
+          <button id="lb-refresh" onclick="fetchLeaderboard()">Refresh</button>
+        </div>
+      </div>
+      <div id="lb-rows"><div id="lb-status">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- SOLO GAME -->
+  <div id="solo-screen" class="screen">
+    <div class="mode-tabs">
+      <button class="tab active" onclick="switchSoloMode('classic')">Classic</button>
+      <button class="tab" onclick="switchSoloMode('daily')">Daily</button>
+      <button class="tab" onclick="switchSoloMode('survival')">Survival</button>
+    </div>
+    <div id="stats-row">
+      <div class="scard"><div class="scard-label">Best</div><div class="scard-val" id="s-best">—</div></div>
+      <div class="scard"><div class="scard-label">Combo</div><div class="scard-val pink" id="s-combo">0x</div></div>
+      <div class="scard"><div class="scard-label">Score</div><div class="scard-val yellow" id="s-score">0</div></div>
+      <div class="scard"><div class="scard-label">Round</div><div class="scard-val blue" id="s-round">—</div></div>
+    </div>
+    <div id="round-pips"></div>
+    <div id="arena" class="arena" onclick="handleClick('solo')">
+      <div class="arena-main" id="arena-main">Ready</div>
+      <div class="arena-sub" id="arena-sub">press start</div>
+    </div>
+    <div id="combo-wrap">
+      <div id="combo-track"><div id="combo-fill"></div></div>
+      <div id="combo-meta"><span>Combo window</span><span id="combo-pct">—</span></div>
+    </div>
+    <div id="result-flash"></div>
+    <div class="btn-row">
+      <button class="gbtn primary" id="start-btn" onclick="startSoloGame()">Start</button>
+      <button class="gbtn" id="share-btn" onclick="showShare()" disabled>Share score</button>
+    </div>
+    <button class="gbtn full" onclick="goTo('menu-screen'); fetchLeaderboard()" style="margin-bottom:1.5rem;">Back to menu</button>
+    <div id="share-card">
+      <div id="share-game-name">Reflex Arena</div>
+      <div id="share-pts">—</div>
+      <div id="share-detail">—</div>
+      <div id="share-pips"></div>
+      <button id="copy-btn" onclick="copyScore()">Copy to share</button>
+    </div>
+  </div>
+
+  <!-- OFFLINE -->
+  <div id="offline-screen" class="screen">
+    <div class="offline-info">
+      <div class="offline-title">Offline mode</div>
+      <div class="offline-best" id="offline-best-val">—</div>
+      <div class="offline-best-label">Local best score</div>
+    </div>
+    <div id="offline-pips"></div>
+    <div id="offline-arena" class="arena" onclick="handleClick('offline')" style="margin-bottom:1.25rem;">
+      <div class="arena-main" id="offline-arena-main">Ready</div>
+      <div class="arena-sub" id="offline-arena-sub">press start</div>
+    </div>
+    <div id="offline-flash" style="text-align:center;font-size:12px;letter-spacing:3px;min-height:18px;margin-bottom:1rem;color:var(--muted);text-transform:uppercase;"></div>
+    <div class="btn-row">
+      <button class="gbtn primary" id="offline-start-btn" onclick="startOfflineGame()">Start</button>
+      <button class="gbtn" onclick="goTo('menu-screen')">Back</button>
+    </div>
+  </div>
+
+  <!-- 1v1 DUEL -->
+  <div id="duel-screen" class="screen">
+    <div class="duel-info">
+      <div class="duel-title">1v1 Duel</div>
+      <div class="duel-sub">Share a room code with a friend.<br>Both play the same rounds — best score wins.</div>
+      <input id="room-input" type="text" maxlength="8" placeholder="ROOM CODE" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="btn-row">
+      <button class="gbtn danger" onclick="joinDuel()">Join / Create room</button>
+      <button class="gbtn" onclick="leaveDuel()">Back</button>
+    </div>
+    <div id="duel-status">Enter a room code to start</div>
+    <div class="duel-arenas" id="duel-arenas" style="display:none;">
+      <div class="duel-player">
+        <div class="duel-player-name you" id="duel-you-name">YOU</div>
+        <div class="duel-score" id="duel-you-score">0</div>
+        <div class="duel-ms" id="duel-you-ms">—</div>
+      </div>
+      <div class="duel-player">
+        <div class="duel-player-name opp" id="duel-opp-name">Waiting...</div>
+        <div class="duel-score" id="duel-opp-score">0</div>
+        <div class="duel-ms" id="duel-opp-ms">—</div>
+      </div>
+    </div>
+    <div id="duel-arena" class="arena" onclick="handleClick('duel')" style="display:none;margin-bottom:1rem;">
+      <div class="arena-main" id="duel-arena-main">Waiting for opponent</div>
+      <div class="arena-sub" id="duel-arena-sub"></div>
+    </div>
+    <div id="duel-result">
+      <div id="duel-result-title">—</div>
+      <div id="duel-result-detail">—</div><button class="gbtn primary" style="margin-top:1rem;width:100%;" onclick="rematchDuel()">Play again</button><button class="gbtn" style="margin-top:8px;width:100%;" onclick="leaveDuel()">Back to menu</button>
+    </div>
+  </div>
+
+  <div id="how">
+    <div id="how-title">How to play</div>
+    <div class="how-row"><div class="how-num">01</div><div>Click the arena the instant it turns green — faster clicks earn more points.</div></div>
+    <div class="how-row"><div class="how-num">02</div><div>Yellow = fake-out. Do not click. Clicking early resets your combo.</div></div>
+    <div class="how-row"><div class="how-num">03</div><div>Build combos by hitting greens back-to-back — every streak multiplies your score.</div></div>
+    <div class="how-row"><div class="how-num">04</div><div>1v1 Duel: share a room code with a friend and race on the same rounds.</div></div>
+    <div class="how-row"><div class="how-num">05</div><div>Offline mode works with no internet — scores save locally to your device.</div></div>
+  </div>
+  <div id="footer">reflexarena.io &mdash; v2.0</div>
+</div>
+
+<script>
+var SUPABASE_URL = 'https://mhsorfjjhegggwyshfng.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oc29yZmpqaGVnZ2d3eXNoZm5nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MjQ1NTksImV4cCI6MjA5MDMwMDU1OX0.5aairg6olVWB5F986HEElzmGLYhf9PBHz3pny1cPL5I';
+
+var MODES = {
+  classic:  { rounds: 8,  fakeChance: 0.25, maxWait: 2200, label: 'Classic' },
+  daily:    { rounds: 6,  fakeChance: 0.35, maxWait: 1800, label: 'Daily' },
+  survival: { rounds: 12, fakeChance: 0.40, maxWait: 1600, label: 'Survival' },
+  offline:  { rounds: 8,  fakeChance: 0.3,  maxWait: 2000, label: 'Offline' }
+};
+
+var username = '';
+var soloMode = 'classic';
+var soloState = 'idle', soloInGame = false;
+var combo = 0, score = 0, bestMs = null, roundNum = 0, totalRounds = 8;
+var roundResults = [];
+var waitTO, flashTO, comboIV;
+var flashStart = 0;
+
+// offline
+var offlineState = 'idle', offlineInGame = false;
+var offCombo = 0, offScore = 0, offBestMs = null, offRoundNum = 0;
+var offResults = [];
+var offWaitTO, offFlashTO, offStart = 0;
+var localBest = 0;
+
+// duel
+var duelChannel = null;
+var duelRoom = '';
+var duelState = 'idle';
+var duelInGame = false;
+var duelMyScore = 0, duelMyBest = null;
+var duelOppScore = 0, duelOppBest = null;
+var duelOppName = '';
+var duelReady = false, duelOppReady = false;
+var duelRoundNum = 0, duelResults = [];
+var duelWaitTO, duelFlashTO, duelStart = 0;
+var duelSeed = 0;
+
+function goTo(id) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) { screens[i].classList.remove('active'); }
+  var el = document.getElementById(id);
+  if (el) { el.classList.add('active'); }
+}
+
+function confirmUsername() {
+  var val = document.getElementById('username-input').value.trim().toUpperCase();
+  var err = document.getElementById('username-error');
+  if (val.length < 2) { err.textContent = 'min 2 characters'; return; }
+  if (!/^[A-Z0-9_]+$/.test(val)) { err.textContent = 'letters, numbers, underscores only'; return; }
+  err.textContent = '';
+  username = val;
+  document.getElementById('player-name-display').textContent = username;
+  goTo('menu-screen');
+  fetchLeaderboard();
+}
+document.getElementById('username-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmUsername(); });
+
+// ── SOLO ──
+function startSolo(m) { soloMode = m; goTo('solo-screen'); resetSoloUI(); }
+
+function switchSoloMode(m) {
+  if (soloInGame) return;
+  soloMode = m;
+  var tabs = document.querySelectorAll('#solo-screen .tab');
+  var names = ['classic','daily','survival'];
+  for (var i = 0; i < tabs.length; i++) { tabs[i].classList.toggle('active', names[i] === m); }
+  resetSoloUI();
+}
+
+function resetSoloUI() {
+  combo = 0; score = 0; bestMs = null; roundNum = 0; roundResults = [];
+  updateSoloStats(); buildPips(0, 'round-pips', MODES[soloMode].rounds, []);
+  setA('arena', '', 'Ready', 'press start');
+  document.getElementById('result-flash').textContent = '';
+  document.getElementById('start-btn').disabled = false;
+  document.getElementById('start-btn').textContent = 'Start';
+  document.getElementById('share-btn').disabled = true;
+  document.getElementById('share-card').className = '';
+}
+
+function buildPips(n, elId, total, results) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var html = '';
+  for (var i = 0; i < total; i++) {
+    var cls = 'pip';
+    if (i < n) { cls += results[i] ? ' done' : ' fail'; }
+    else if (i === n) { cls += ' current'; }
+    html += '<div class="' + cls + '"></div>';
+  }
+  el.innerHTML = html;
+}
+
+function setA(arenaId, cls, main, sub) {
+  var a = document.getElementById(arenaId);
+  if (!a) return;
+  a.className = 'arena' + (cls ? ' ' + cls : '');
+  var mEl = a.querySelector('.arena-main');
+  var sEl = a.querySelector('.arena-sub');
+  if (mEl) mEl.textContent = main;
+  if (sEl) sEl.textContent = sub || '';
+}
+
+function updateSoloStats() {
+  document.getElementById('s-best').textContent = bestMs !== null ? bestMs + 'ms' : '—';
+  document.getElementById('s-combo').textContent = combo + 'x';
+  document.getElementById('s-score').textContent = score.toLocaleString();
+  document.getElementById('s-round').textContent = soloInGame ? roundNum + '/' + totalRounds : '—';
+}
+
+function flashMsg(elId, msg, color) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || 'var(--muted)';
+}
+
+function startSoloGame() {
+  if (soloInGame) return;
+  soloInGame = true; combo = 0; score = 0; bestMs = null; roundNum = 0; roundResults = [];
+  totalRounds = MODES[soloMode].rounds;
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('share-btn').disabled = true;
+  document.getElementById('share-card').className = '';
+  updateSoloStats(); flashMsg('result-flash', '');
+  soloNextRound();
+}
+
+function soloNextRound() {
+  if (roundNum >= totalRounds) { soloEndGame(); return; }
+  soloState = 'waiting';
+  setA('arena', '', 'Wait...', '');
+  buildPips(roundNum, 'round-pips', totalRounds, roundResults);
+  var cfg = MODES[soloMode];
+  var delay = 700 + Math.random() * cfg.maxWait;
+  var isFake = roundNum >= 2 && Math.random() < cfg.fakeChance;
+  waitTO = setTimeout(function() {
+    if (isFake) {
+      setA('arena', 'warn', 'FAKE!', 'do not click');
+      soloState = 'fakeout';
+      setTimeout(function() { if (soloState === 'fakeout') { soloState = 'waiting'; soloNextRound(); } }, 750);
+    } else {
+      setA('arena', 'go', 'NOW!', 'click!');
+      soloState = 'active'; flashStart = Date.now();
+      flashTO = setTimeout(function() {
+        if (soloState === 'active') {
+          combo = 0; roundResults.push(false); roundNum++;
+          setA('arena', 'bad', 'Too slow!', '');
+          flashMsg('result-flash', 'too slow — combo reset', 'var(--np)');
+          updateSoloStats(); buildPips(roundNum, 'round-pips', totalRounds, roundResults);
+          setTimeout(soloNextRound, 900);
+        }
+      }, 1100);
+    }
+  }, delay);
+}
+
+function handleClick(ctx) {
+  if (ctx === 'solo') handleSoloClick();
+  else if (ctx === 'offline') handleOfflineClick();
+  else if (ctx === 'duel') handleDuelClick();
+}
+
+function handleSoloClick() {
+  if (soloState === 'active') {
+    clearTimeout(flashTO);
+    var ms = Date.now() - flashStart;
+    combo++; var pts = Math.round((500/ms)*100*(1+(combo-1)*0.15));
+    score += pts; if (bestMs === null || ms < bestMs) bestMs = ms;
+    roundResults.push(true); roundNum++;
+    var q = ms<130?'INSANE':ms<180?'FAST':ms<260?'GOOD':ms<380?'OKAY':'MEH';
+    setA('arena', 'go', ms+'ms', q+' — +'+pts.toLocaleString()+' pts');
+    flashMsg('result-flash', combo>1?'combo x'+combo+' — bonus active!':'', 'var(--ng)');
+    updateSoloStats(); buildPips(roundNum,'round-pips',totalRounds,roundResults); startComboBar();
+    soloState = 'result'; setTimeout(soloNextRound, 800);
+  } else if (soloState === 'fakeout' || soloState === 'waiting') {
+    clearTimeout(waitTO); combo = 0; roundResults.push(false); roundNum++;
+    setA('arena', 'bad', soloState==='fakeout'?'Faked!':'Too early!', 'combo reset');
+    flashMsg('result-flash', soloState==='fakeout'?'fell for the fake!':'too early!', 'var(--np)');
+    updateSoloStats(); buildPips(roundNum,'round-pips',totalRounds,roundResults);
+    soloState = 'punished'; setTimeout(soloNextRound, 950);
+  }
+}
+
+function startComboBar() {
+  clearInterval(comboIV); var pct = 100;
+  document.getElementById('combo-fill').style.width = '100%';
+  comboIV = setInterval(function() {
+    pct -= 1.2;
+    document.getElementById('combo-fill').style.width = Math.max(0,pct)+'%';
+    document.getElementById('combo-pct').textContent = Math.round(pct)+'%';
+    if (pct <= 0) { clearInterval(comboIV); document.getElementById('combo-pct').textContent = '—'; }
+  }, 25);
+}
+
+function soloEndGame() {
+  soloInGame = false; soloState = 'idle'; clearInterval(comboIV);
+  document.getElementById('start-btn').disabled = false;
+  document.getElementById('start-btn').textContent = 'Play again';
+  document.getElementById('share-btn').disabled = false;
+  var hits = 0; for (var i=0;i<roundResults.length;i++){if(roundResults[i])hits++;}
+  setA('arena','','Done!',hits+'/'+totalRounds+' hits — '+score.toLocaleString()+' pts');
+  flashMsg('result-flash','game over — submitting score...','var(--nb)');
+  if (bestMs !== null) submitScore();
+  else flashMsg('result-flash','no hits recorded','var(--muted)');
+}
+
+function submitScore() {
+  fetch(SUPABASE_URL+'/rest/v1/scores', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},
+    body:JSON.stringify({username:username,score:score,best_ms:bestMs,mode:soloMode})
+  }).then(function(res){
+    if(res.ok){flashMsg('result-flash','score saved!','var(--ng)');fetchLeaderboard();}
+  }).catch(function(){});
+}
+
+function fetchLeaderboard() {
+  document.getElementById('lb-rows').innerHTML = '<div id="lb-status">Loading...</div>';
+  document.getElementById('lb-mode-badge').textContent = MODES[soloMode] ? MODES[soloMode].label : 'Classic';
+  fetch(SUPABASE_URL+'/rest/v1/scores?mode=eq.'+soloMode+'&order=score.desc&limit=10',{
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+  }).then(function(r){return r.json();}).then(renderLB).catch(function(){
+    document.getElementById('lb-rows').innerHTML='<div id="lb-status">Could not load</div>';
+  });
+}
+
+function renderLB(rows) {
+  if (!rows||!rows.length){document.getElementById('lb-rows').innerHTML='<div id="lb-status">No scores yet — be first!</div>';return;}
+  var html='';
+  for(var i=0;i<rows.length;i++){
+    var e=rows[i],rc=i===0?'g':i===1?'s':i===2?'b':'',isYou=e.username===username;
+    html+='<div class="lb-row"><div class="lb-rank '+rc+'">'+(i+1)+'</div><div class="lb-name'+(isYou?' you-entry':'')+'">'+e.username+(isYou?'<span class="you-tag">YOU</span>':'')+'</div><div class="lb-ms">'+e.best_ms+'ms</div><div class="lb-pts">'+e.score.toLocaleString()+'</div></div>';
+  }
+  document.getElementById('lb-rows').innerHTML=html;
+}
+
+function showShare() {
+  document.getElementById('share-card').className='show';
+  document.getElementById('share-pts').textContent=score.toLocaleString()+' pts';
+  document.getElementById('share-detail').textContent=(bestMs!==null?'best: '+bestMs+'ms':'no hits')+' · '+MODES[soloMode].label+' mode';
+  var pips='';for(var i=0;i<roundResults.length;i++){pips+='<div class="spip '+(roundResults[i]?'g':'b')+'">'+(roundResults[i]?'✓':'✗')+'</div>';}
+  document.getElementById('share-pips').innerHTML=pips;
+  document.getElementById('share-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function copyScore() {
+  var hits=0;for(var i=0;i<roundResults.length;i++){if(roundResults[i])hits++;}
+  var emoji='';for(var i=0;i<roundResults.length;i++){emoji+=roundResults[i]?'🟩':'🟥';}
+  var text='Reflex Arena — '+MODES[soloMode].label+'\n'+emoji+'\nScore: '+score.toLocaleString()+' pts | Best: '+(bestMs!==null?bestMs+'ms':'—')+' | '+hits+'/'+totalRounds+' hits\nPlay free → '+window.location.href;
+  if(navigator.clipboard)navigator.clipboard.writeText(text).catch(function(){});
+  document.getElementById('copy-btn').textContent='Copied!';
+  setTimeout(function(){document.getElementById('copy-btn').textContent='Copy to share';},2000);
+}
+
+// ── OFFLINE ──
+function initOffline() {
+  offlineInGame = false; offlineState = 'idle';
+  offCombo=0;offScore=0;offBestMs=null;offRoundNum=0;offResults=[];
+  buildPips(0,'offline-pips',MODES.offline.rounds,[]);
+  setA('offline-arena','','Ready','press start');
+  document.getElementById('offline-flash').textContent='';
+  document.getElementById('offline-start-btn').textContent='Start';
+  updateOfflineBest();
+}
+
+function updateOfflineBest() {
+  document.getElementById('offline-best-val').textContent = localBest > 0 ? localBest.toLocaleString() : '—';
+}
+
+function startOfflineGame() {
+  if(offlineInGame)return;
+  offlineInGame=true;offCombo=0;offScore=0;offBestMs=null;offRoundNum=0;offResults=[];
+  document.getElementById('offline-start-btn').disabled=true;
+  flashMsg('offline-flash','');
+  offNextRound();
+}
+
+function offNextRound() {
+  if(offRoundNum>=MODES.offline.rounds){offEndGame();return;}
+  offlineState='waiting';
+  setA('offline-arena','','Wait...','');
+  buildPips(offRoundNum,'offline-pips',MODES.offline.rounds,offResults);
+  var delay=700+Math.random()*MODES.offline.maxWait;
+  var isFake=offRoundNum>=2&&Math.random()<MODES.offline.fakeChance;
+  offWaitTO=setTimeout(function(){
+    if(isFake){
+      setA('offline-arena','warn','FAKE!','do not click');
+      offlineState='fakeout';
+      setTimeout(function(){if(offlineState==='fakeout'){offlineState='waiting';offNextRound();}},750);
+    } else {
+      setA('offline-arena','go','NOW!','click!');
+      offlineState='active';offStart=Date.now();
+      offFlashTO=setTimeout(function(){
+        if(offlineState==='active'){
+          offCombo=0;offResults.push(false);offRoundNum++;
+          setA('offline-arena','bad','Too slow!','');
+          flashMsg('offline-flash','too slow — combo reset','var(--np)');
+          buildPips(offRoundNum,'offline-pips',MODES.offline.rounds,offResults);
+          setTimeout(offNextRound,900);
+        }
+      },1100);
+    }
+  },delay);
+}
+
+function handleOfflineClick() {
+  if(offlineState==='active'){
+    clearTimeout(offFlashTO);
+    var ms=Date.now()-offStart;
+    offCombo++;var pts=Math.round((500/ms)*100*(1+(offCombo-1)*0.15));
+    offScore+=pts;if(offBestMs===null||ms<offBestMs)offBestMs=ms;
+    offResults.push(true);offRoundNum++;
+    var q=ms<130?'INSANE':ms<180?'FAST':ms<260?'GOOD':ms<380?'OKAY':'MEH';
+    setA('offline-arena','go',ms+'ms',q+' — +'+pts.toLocaleString()+' pts');
+    flashMsg('offline-flash',offCombo>1?'combo x'+offCombo:'','var(--ng)');
+    buildPips(offRoundNum,'offline-pips',MODES.offline.rounds,offResults);
+    offlineState='result';setTimeout(offNextRound,800);
+  } else if(offlineState==='fakeout'||offlineState==='waiting'){
+    clearTimeout(offWaitTO);offCombo=0;offResults.push(false);offRoundNum++;
+    setA('offline-arena','bad',offlineState==='fakeout'?'Faked!':'Too early!','combo reset');
+    flashMsg('offline-flash',offlineState==='fakeout'?'fell for the fake!':'too early!','var(--np)');
+    buildPips(offRoundNum,'offline-pips',MODES.offline.rounds,offResults);
+    offlineState='punished';setTimeout(offNextRound,950);
+  }
+}
+
+function offEndGame() {
+  offlineInGame=false;offlineState='idle';
+  if(offScore>localBest)localBest=offScore;
+  document.getElementById('offline-start-btn').disabled=false;
+  document.getElementById('offline-start-btn').textContent='Play again';
+  var hits=0;for(var i=0;i<offResults.length;i++){if(offResults[i])hits++;}
+  setA('offline-arena','','Done!',hits+'/'+MODES.offline.rounds+' hits — '+offScore.toLocaleString()+' pts');
+  flashMsg('offline-flash',offScore>localBest-1?'new local best!':'','var(--ny)');
+  updateOfflineBest();
+}
+
+// ── 1v1 DUEL ──
+function initDuel() {
+  duelState='idle';duelInGame=false;
+  duelMyScore=0;duelMyBest=null;duelOppScore=0;duelOppBest=null;
+  duelOppName='';duelReady=false;duelOppReady=false;
+  duelRoundNum=0;duelResults=[];
+  document.getElementById('duel-status').textContent='Enter a room code to start';
+  document.getElementById('duel-arenas').style.display='none';
+  document.getElementById('duel-arena').style.display='none';
+  document.getElementById('duel-result').className='';
+  document.getElementById('room-input').value='';
+}
+
+function joinDuel() {
+  var code=document.getElementById('room-input').value.trim().toUpperCase();
+  if(code.length<2){document.getElementById('duel-status').textContent='enter a room code first';return;}
+  duelRoom=code;
+  if(duelChannel){duelChannel.unsubscribe();}
+  document.getElementById('duel-status').textContent='Connecting to room '+code+'...';
+  duelChannel=supabaseRealtime(code);
+}
+
+function supabaseRealtime(room) {
+  var wsUrl='wss://'+SUPABASE_URL.replace('https://','')+ '/realtime/v1/websocket?apikey='+SUPABASE_KEY+'&vsn=1.0.0';
+  var ws;
+  try { ws=new WebSocket(wsUrl); } catch(e){
+    document.getElementById('duel-status').textContent='Could not connect — check internet';
+    return null;
+  }
+  var joined=false;
+  ws.onopen=function(){
+    ws.send(JSON.stringify({topic:'realtime:duel-'+room,event:'phx_join',payload:{},ref:'1'}));
+  };
+  ws.onmessage=function(e){
+    var msg;try{msg=JSON.parse(e.data);}catch(ex){return;}
+    if(msg.event==='phx_reply'&&!joined){
+      joined=true;
+      document.getElementById('duel-status').textContent='In room '+room+' — waiting for opponent...';
+      document.getElementById('duel-arenas').style.display='grid';
+      document.getElementById('duel-arena').style.display='flex';
+      document.getElementById('duel-you-name').textContent=username;
+      document.getElementById('duel-you-score').textContent='0';
+      document.getElementById('duel-you-ms').textContent='—';
+      duelBroadcast(ws,room,{type:'join',name:username});
+    }
+    if(msg.event==='broadcast'&&msg.payload&&msg.payload.payload){
+      var p=msg.payload.payload;
+      if(p.type==='join'&&p.name!==username){
+        duelOppName=p.name;
+        document.getElementById('duel-opp-name').textContent=duelOppName;
+        document.getElementById('duel-status').textContent=duelOppName+' joined! Starting in 3s...';
+        duelBroadcast(ws,room,{type:'join',name:username});
+        if(!duelInGame){setTimeout(function(){startDuelGame(ws,room);},3000);}
+      }
+      if(p.type==='score'&&p.name!==username){
+        duelOppScore=p.score;duelOppBest=p.best_ms;
+        document.getElementById('duel-opp-score').textContent=duelOppScore.toLocaleString();
+        document.getElementById('duel-opp-ms').textContent=p.best_ms?p.best_ms+'ms':'—';
+      }
+      if(p.type==='done'&&p.name!==username){
+        duelOppScore=p.score;duelOppBest=p.best_ms;
+        document.getElementById('duel-opp-score').textContent=duelOppScore.toLocaleString();
+        document.getElementById('duel-opp-ms').textContent=p.best_ms?p.best_ms+'ms':'—';
+        if(!duelInGame)showDuelResult();
+      }
+    }
+  };
+  ws.onerror=function(){document.getElementById('duel-status').textContent='Connection error — try again';};
+  ws.onclose=function(){if(duelInGame){document.getElementById('duel-status').textContent='Disconnected';}};
+  return ws;
+}
+
+function duelBroadcast(ws,room,payload){
+  if(!ws||ws.readyState!==1)return;
+  ws.send(JSON.stringify({topic:'realtime:duel-'+room,event:'broadcast',payload:{type:'broadcast',event:'msg',payload:payload},ref:'2'}));
+}
+
+function startDuelGame(ws,room){
+  if(duelInGame)return;
+  duelInGame=true;duelMyScore=0;duelMyBest=null;duelRoundNum=0;duelResults=[];
+  document.getElementById('duel-status').textContent='GAME ON!';
+  setA('duel-arena','','Wait...','');
+  duelNextRound(ws,room);
+}
+
+function duelNextRound(ws,room){
+  if(!duelInGame)return;
+  if(duelRoundNum>=MODES.classic.rounds){duelEndGame(ws,room);return;}
+  duelState='waiting';
+  setA('duel-arena','','Wait...','');
+  var delay=700+Math.random()*2200;
+  var isFake=duelRoundNum>=2&&Math.random()<0.3;
+  duelWaitTO=setTimeout(function(){
+    if(isFake){
+      setA('duel-arena','warn','FAKE!','do not click');
+      duelState='fakeout';
+      setTimeout(function(){if(duelState==='fakeout'){duelState='waiting';duelNextRound(ws,room);}},750);
+    } else {
+      setA('duel-arena','go','NOW!','click!');
+      duelState='active';duelStart=Date.now();
+      duelFlashTO=setTimeout(function(){
+        if(duelState==='active'){
+          duelResults.push(false);duelRoundNum++;
+          setA('duel-arena','bad','Too slow!','');
+          setTimeout(function(){duelNextRound(ws,room);},900);
+        }
+      },1100);
+    }
+  },delay);
+}
+
+function handleDuelClick(){
+  if(duelState==='active'){
+    clearTimeout(duelFlashTO);
+    var ms=Date.now()-duelStart;
+    var pts=Math.round((500/ms)*100);
+    duelMyScore+=pts;if(duelMyBest===null||ms<duelMyBest)duelMyBest=ms;
+    duelResults.push(true);duelRoundNum++;
+    var q=ms<130?'INSANE':ms<180?'FAST':ms<260?'GOOD':'OKAY';
+    setA('duel-arena','go',ms+'ms',q+' +'+pts+' pts');
+    document.getElementById('duel-you-score').textContent=duelMyScore.toLocaleString();
+    document.getElementById('duel-you-ms').textContent=duelMyBest+'ms';
+    if(duelChannel)duelBroadcast(duelChannel,duelRoom,{type:'score',name:username,score:duelMyScore,best_ms:duelMyBest});
+    duelState='result';setTimeout(function(){duelNextRound(duelChannel,duelRoom);},800);
+  } else if(duelState==='fakeout'||duelState==='waiting'){
+    clearTimeout(duelWaitTO);duelResults.push(false);duelRoundNum++;
+    setA('duel-arena','bad',duelState==='fakeout'?'Faked!':'Too early!','');
+    duelState='punished';setTimeout(function(){duelNextRound(duelChannel,duelRoom);},950);
+  }
+}
+
+function duelEndGame(ws,room){
+  duelInGame=false;duelState='idle';
+  setA('duel-arena','','Done!','waiting for opponent...');
+  if(ws)duelBroadcast(ws,room,{type:'done',name:username,score:duelMyScore,best_ms:duelMyBest});
+  setTimeout(showDuelResult,1500);
+}
+
+function showDuelResult(){
+  var won=duelMyScore>duelOppScore;
+  var tied=duelMyScore===duelOppScore;
+  var r=document.getElementById('duel-result');
+  r.className='show';
+  var title=document.getElementById('duel-result-title');
+  if(tied){title.textContent='TIED!';title.style.color='var(--ny)';}
+  else if(won){title.textContent='YOU WIN!';title.style.color='var(--ng)';}
+  else{title.textContent='YOU LOSE';title.style.color='var(--np)';}
+  document.getElementById('duel-result-detail').textContent=
+    username+': '+duelMyScore.toLocaleString()+' pts'+(duelMyBest?' ('+duelMyBest+'ms)':'')+
+    ' vs '+(duelOppName||'Opponent')+': '+duelOppScore.toLocaleString()+' pts'+(duelOppBest?' ('+duelOppBest+'ms)':'');
+}
+
+function rematchDuel(){
+  if(duelChannel){
+    duelMyScore=0;duelMyBest=null;duelOppScore=0;duelOppBest=null;
+    duelRoundNum=0;duelResults=[];duelInGame=false;duelState='idle';
+    document.getElementById('duel-result').className='';
+    document.getElementById('duel-you-score').textContent='0';
+    document.getElementById('duel-opp-score').textContent='0';
+    document.getElementById('duel-you-ms').textContent='—';
+    document.getElementById('duel-opp-ms').textContent='—';
+    document.getElementById('duel-status').textContent='Waiting for opponent to ready up...';
+    setA('duel-arena','','Ready','waiting for opponent');
+    if(duelChannel)duelBroadcast(duelChannel,duelRoom,{type:'rematch',name:username});
+  }
+}
+function leaveDuel(){
+  if(duelChannel){try{duelChannel.close();}catch(e){}duelChannel=null;}
+  clearTimeout(duelWaitTO);clearTimeout(duelFlashTO);
+  duelInGame=false;duelState='idle';
+  goTo('menu-screen');
+}
+</script>
+</body>
+</html>
